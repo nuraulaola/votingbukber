@@ -40,33 +40,21 @@ st.caption("Note: Belum cek ketersediaan resto")
 st.divider()
 
 # =========================
-# LIST RESTO + LINK
-# =========================
-st.subheader("📋 Daftar restoran & menu")
-
-options = []
-
-for name, desc, link in restaurants:
-    st.markdown(f"""
-**{name}**  
-{desc}  
-🔗 [Lihat menu]({link})
----
-""")
-    options.append(f"{name} ({desc})")
-
-# =========================
-# INPUT USER
+# VOTING (langsung di atas)
 # =========================
 st.subheader("🗳️ Voting")
 
 user_name = st.text_input("Masukkan nama kamu")
 
+options = [f"{r[0]} ({r[1]})" for r in restaurants]
 choice = st.radio("Pilih restoran", options)
 
-# =========================
-# SUBMIT
-# =========================
+# quick access link (hanya untuk yang dipilih)
+selected_index = options.index(choice)
+selected_resto = restaurants[selected_index]
+
+st.markdown(f"🔗 [Lihat menu pilihan kamu]({selected_resto[2]})")
+
 if st.button("Submit Vote"):
     if user_name.strip() == "":
         st.warning("Nama wajib diisi")
@@ -74,7 +62,7 @@ if st.button("Submit Vote"):
         if user_name in df["name"].values:
             st.error("Kamu sudah vote sebelumnya")
         else:
-            selected_name = choice.split(" (")[0]
+            selected_name = selected_resto[0]
 
             new_data = pd.DataFrame(
                 [[user_name, selected_name]],
@@ -87,6 +75,15 @@ if st.button("Submit Vote"):
             st.success("Vote berhasil disimpan!")
 
 # =========================
+# MENU (collapsible)
+# =========================
+st.divider()
+
+with st.expander("📋 Lihat semua menu restoran"):
+    for name, desc, link in restaurants:
+        st.markdown(f"**{name}** ({desc})  \n🔗 [Menu]({link})")
+
+# =========================
 # HASIL
 # =========================
 st.divider()
@@ -95,6 +92,5 @@ st.subheader("📊 Hasil Voting")
 if not df.empty:
     result = df["vote"].value_counts()
     st.bar_chart(result)
-    st.dataframe(df)
 else:
     st.info("Belum ada vote masuk")
