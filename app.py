@@ -40,7 +40,20 @@ st.caption("Note: Belum cek ketersediaan resto")
 st.divider()
 
 # =========================
-# VOTING (langsung di atas)
+# MENU LINKS (ATAS, RINGKAS)
+# =========================
+st.subheader("📋 Menu restoran")
+
+menu_text = ""
+for name, desc, link in restaurants:
+    menu_text += f"- [{name} ({desc})]({link})\n"
+
+st.markdown(menu_text)
+
+st.divider()
+
+# =========================
+# VOTING
 # =========================
 st.subheader("🗳️ Voting")
 
@@ -49,12 +62,6 @@ user_name = st.text_input("Masukkan nama kamu")
 options = [f"{r[0]} ({r[1]})" for r in restaurants]
 choice = st.radio("Pilih restoran", options)
 
-# quick access link (hanya untuk yang dipilih)
-selected_index = options.index(choice)
-selected_resto = restaurants[selected_index]
-
-st.markdown(f"🔗 [Lihat menu pilihan kamu]({selected_resto[2]})")
-
 if st.button("Submit Vote"):
     if user_name.strip() == "":
         st.warning("Nama wajib diisi")
@@ -62,7 +69,7 @@ if st.button("Submit Vote"):
         if user_name in df["name"].values:
             st.error("Kamu sudah vote sebelumnya")
         else:
-            selected_name = selected_resto[0]
+            selected_name = choice.split(" (")[0]
 
             new_data = pd.DataFrame(
                 [[user_name, selected_name]],
@@ -73,15 +80,6 @@ if st.button("Submit Vote"):
             df.to_csv(DATA_FILE, index=False)
 
             st.success("Vote berhasil disimpan!")
-
-# =========================
-# MENU (collapsible)
-# =========================
-st.divider()
-
-with st.expander("📋 Lihat semua menu restoran"):
-    for name, desc, link in restaurants:
-        st.markdown(f"**{name}** ({desc})  \n🔗 [Menu]({link})")
 
 # =========================
 # HASIL
