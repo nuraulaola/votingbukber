@@ -6,6 +6,9 @@ st.set_page_config(page_title="Voting Bukber AEON", layout="centered")
 
 DATA_FILE = "votes.csv"
 
+# =========================
+# DATA RESTO
+# =========================
 restaurants = [
     ("Oseng Bistro", "Nusantara | Lt. 3A", "https://www.instagram.com/s/aGlnaGxpZ2h0OjE4MDUyMjczOTY0NDE2MTI3?story_media_id=3806657906050496184_77933270258"),
     ("Gyu-Kaku", "AYCE 90 menit | Lt. 2", "https://menu.gyu-kaku.id/"),
@@ -20,49 +23,46 @@ restaurants = [
     ("Little Red Dot", "Singapore | Lt. 1", "https://tr.ee/StNiRCFTNy"),
 ]
 
-# init data
+# =========================
+# INIT DATA
+# =========================
 if not os.path.exists(DATA_FILE):
     pd.DataFrame(columns=["name", "vote"]).to_csv(DATA_FILE, index=False)
 
 df = pd.read_csv(DATA_FILE)
 
+# =========================
+# HEADER
+# =========================
 st.title("🍽️ Voting Bukber AEON Tanjung Barat")
+st.caption("Note: Belum cek ketersediaan resto")
 
-st.subheader("🗳️ Pilih restoran")
+st.divider()
+
+# =========================
+# VOTING (langsung di atas)
+# =========================
+st.subheader("🗳️ Voting")
 
 user_name = st.text_input("Masukkan nama kamu")
 
-# simpan pilihan di session
-if "choice" not in st.session_state:
-    st.session_state.choice = None
+options = [f"{r[0]} ({r[1]})" for r in restaurants]
+choice = st.radio("Pilih restoran", options)
 
-# render opsi custom
-for i, (name, desc, link) in enumerate(restaurants):
-    col1, col2 = st.columns([4,1])
+# quick access link (hanya untuk yang dipilih)
+selected_index = options.index(choice)
+selected_resto = restaurants[selected_index]
 
-    with col1:
-        if st.radio(
-            label=f"{name} ({desc})",
-            options=[i],
-            key=f"radio_{i}",
-            label_visibility="visible"
-        ):
-            st.session_state.choice = i
+st.markdown(f"🔗 [Lihat menu pilihan kamu]({selected_resto[2]})")
 
-    with col2:
-        st.markdown(f"[Menu]({link})")
-
-# submit
 if st.button("Submit Vote"):
     if user_name.strip() == "":
         st.warning("Nama wajib diisi")
-    elif st.session_state.choice is None:
-        st.warning("Pilih restoran dulu")
     else:
         if user_name in df["name"].values:
             st.error("Kamu sudah vote sebelumnya")
         else:
-            selected_name = restaurants[st.session_state.choice][0]
+            selected_name = selected_resto[0]
 
             new_data = pd.DataFrame(
                 [[user_name, selected_name]],
@@ -74,11 +74,23 @@ if st.button("Submit Vote"):
 
             st.success("Vote berhasil disimpan!")
 
-# hasil
+# =========================
+# MENU (collapsible)
+# =========================
+st.divider()
+
+with st.expander("📋 Lihat semua menu restoran"):
+    for name, desc, link in restaurants:
+        st.markdown(f"**{name}** ({desc})  \n🔗 [Menu]({link})")
+
+# =========================
+# HASIL
+# =========================
 st.divider()
 st.subheader("📊 Hasil Voting")
 
 if not df.empty:
-    st.bar_chart(df["vote"].value_counts())
+    result = df["vote"].value_counts()
+    st.bar_chart(result)
 else:
     st.info("Belum ada vote masuk")
